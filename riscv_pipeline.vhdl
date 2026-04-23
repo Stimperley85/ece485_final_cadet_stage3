@@ -39,7 +39,7 @@ architecture Behavioral of riscv_pipeline is
     signal reg1_data, reg2_data                         : STD_LOGIC_VECTOR(31 downto 0);
     signal alu_input_a, alu_input_b, alu_result  : STD_LOGIC_VECTOR(31 downto 0);
     signal wb_data                                      : STD_LOGIC_VECTOR(31 downto 0);
-    signal mem_data, data_memory_byte_not_word, mem_wb_mem_data   : STD_LOGIC_VECTOR(31 downto 0);
+    signal mem_data, data_memory_byte_not_word, ex_mem_mem_data, mem_wb_mem_data   : STD_LOGIC_VECTOR(31 downto 0);
     signal clock_counter : integer := 1;
      -- control signals
     signal mem_read   : STD_LOGIC;
@@ -64,6 +64,7 @@ architecture Behavioral of riscv_pipeline is
     signal if_id_rs1, id_ex_rs1, ex_mem_rs1, mem_wb_rs1 : STD_LOGIC_VECTOR(4 downto 0);
     signal if_id_rs2, id_ex_rs2, ex_mem_rs2, mem_wb_rs2 : STD_LOGIC_VECTOR(4 downto 0);
     signal if_id_rd, id_ex_rd, ex_mem_rd, mem_wb_rd     : STD_LOGIC_VECTOR(4 downto 0);
+    --signal ex_mem_mem_data, mem_wb_mem_data  : STD_LOGIC_VECTOR(31 downto 0);
 
     -- control signals for pipeline stages
     signal if_id_reg_write, id_ex_reg_write, ex_mem_reg_write, mem_wb_reg_write  : STD_LOGIC;
@@ -73,6 +74,7 @@ architecture Behavioral of riscv_pipeline is
     signal if_id_branch, id_ex_branch, ex_mem_branch, mem_wb_branch              : STD_LOGIC;
     signal if_id_jump, id_ex_jump, ex_mem_jump, mem_wb_jump                      : STD_LOGIC;
     signal if_id_load_addr, id_ex_load_addr, ex_mem_load_addr, mem_wb_load_addr  : STD_LOGIC;
+    
     
      -- Additional signals
     signal not_equal_flag : STD_LOGIC;
@@ -176,8 +178,8 @@ architecture Behavioral of riscv_pipeline is
             load_addr : in STD_LOGIC;
             instr : in  STD_LOGIC_VECTOR(31 downto 0);
             npc    : in  STD_LOGIC_VECTOR(31 downto 0);
-            --rs1 :
-            --rs2 : in STD_LOGIC_VECTOR
+            --rs1 : in STD_LOGIC_VECTOR(4 downto 0);
+            --rs2 : in STD_LOGIC_VECTOR(4 downto 0);
             rd  : in STD_LOGIC_VECTOR(4 downto 0);
             alu_op  : in STD_LOGIC_VECTOR(3 downto 0);
             -- <add other IF registers?>
@@ -200,8 +202,8 @@ architecture Behavioral of riscv_pipeline is
             -- <add other if_id registers>
             if_id_npc : inout STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
             if_id_rd : inout STD_LOGIC_VECTOR(4 downto 0);
-            if_id_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-            if_id_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+            --if_id_rs1 : in STD_LOGIC_VECTOR(4 downto 0);--rs1
+            --if_id_rs2 : in STD_LOGIC_VECTOR(4 downto 0);--rs2 
             
            
             -- ID/EX pipeline registers
@@ -222,8 +224,8 @@ architecture Behavioral of riscv_pipeline is
             --id_ex_instr : inout STD_LOGIC_VECTOR(31 downto 0);
             id_ex_reg1_data  : inout  STD_LOGIC_VECTOR(31 downto 0);
             id_ex_reg2_data : inout STD_LOGIC_VECTOR(31 downto 0);--reg2
-            id_ex_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-            id_ex_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+            --id_ex_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
+            --id_ex_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
             id_ex_rd : inout STD_LOGIC_VECTOR(4 downto 0);--rd
             
             -- EX/MEM pipeline registers        
@@ -242,9 +244,10 @@ architecture Behavioral of riscv_pipeline is
             ex_mem_instr : inout STD_LOGIC_VECTOR(31 downto 0);--//instr
             ex_mem_reg1_data : inout STD_LOGIC_VECTOR(31 downto 0);
             ex_mem_reg2_data : inout STD_LOGIC_VECTOR(31 downto 0);--reg2
-            ex_mem_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-            ex_mem_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+            --ex_mem_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
+            --ex_mem_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
             ex_mem_rd : inout STD_LOGIC_VECTOR(4 downto 0);--rd
+            ex_mem_mem_data : in STD_LOGIC_VECTOR(31 downto 0);
             
             -- <add other ex_mem registers>
             
@@ -265,8 +268,8 @@ architecture Behavioral of riscv_pipeline is
             mem_wb_instr : out STD_LOGIC_VECTOR(31 downto 0);--//instr
             mem_wb_reg1_data : out STD_LOGIC_VECTOR(31 downto 0); --reg1
             mem_wb_reg2_data : out STD_LOGIC_VECTOR(31 downto 0);--reg2
-            mem_wb_rs1 : out STD_LOGIC_VECTOR(4 downto 0);--rs1
-            mem_wb_rs2 : out STD_LOGIC_VECTOR(4 downto 0);--rs2
+            --mem_wb_rs1 : out STD_LOGIC_VECTOR(4 downto 0);--rs1
+            --mem_wb_rs2 : out STD_LOGIC_VECTOR(4 downto 0);--rs2
             mem_wb_rd : out STD_LOGIC_VECTOR(4 downto 0)--rd
  
         );
@@ -314,6 +317,9 @@ begin
         );
                 
     NPC <= std_logic_vector(signed(pc) + 4);
+    
+
+    --rd  <= if_id_instr(11 downto 7);
               
     -- update temporary registers to support pipelining (state machine no longer needed... as each instruction is at a different state)
     -- Adding stall... if stall, then do not move the pipeline registers, and insert NOP instead
@@ -332,8 +338,10 @@ begin
             jump => jump,--<what control signal?>,
             load_addr => load_addr,--<what control signal?>,
             instr => instr,--<what register?>,
-            npc => npc,--<what register?>,
+            npc => NPC,--<what register?>, --WHY
             rd => instr(11 downto 7),
+            --rs1 => rs1,--instr(19 downto 15),
+            --rs2 => rs2,--instr(24 downto 20),
             alu_op => alu_op,--<what signal?>,
             -- <add other IF registers?>
             
@@ -351,8 +359,8 @@ begin
             if_id_imm        => if_id_imm,  --imm
             if_id_reg1_data  => if_id_reg1_data,  --reg1_data
             if_id_reg2_data  => if_id_reg2_data,  --reg2_data
-            if_id_rs1        => if_id_rs1,  --rs1
-            if_id_rs2        => if_id_rs2,  --rs2
+            --if_id_rs1        => if_id_rs1,  --rs1
+            --if_id_rs2        => if_id_rs2,  --rs2
             if_id_rd         => if_id_rd,  --rd
         
             -- ID/EX pipeline registers
@@ -369,8 +377,8 @@ begin
             id_ex_imm        => id_ex_imm,  --imm
             id_ex_reg1_data  => id_ex_reg1_data,  --reg1_data
             id_ex_reg2_data  => id_ex_reg2_data,  --reg2_data
-            id_ex_rs1        => id_ex_rs1,  --rs1
-            id_ex_rs2        => id_ex_rs2,  --rs2
+            --id_ex_rs1        => id_ex_rs1,  --rs1
+            --id_ex_rs2        => id_ex_rs2,  --rs2
             id_ex_rd         => id_ex_rd,  --rd
             id_ex_alu_result => id_ex_alu_result,
         
@@ -388,10 +396,11 @@ begin
             ex_mem_imm        => ex_mem_imm,  --imm
             ex_mem_reg1_data  => ex_mem_reg1_data,  --reg1_data
             ex_mem_reg2_data  => ex_mem_reg2_data,  --reg2_data
-            ex_mem_rs1        => ex_mem_rs1,  --rs1
-            ex_mem_rs2        => ex_mem_rs2,  --rs2
+            --ex_mem_rs1        => ex_mem_rs1,  --rs1
+            --ex_mem_rs2        => ex_mem_rs2,  --rs2
             ex_mem_rd         => ex_mem_rd,  --rd
             ex_mem_alu_result => ex_mem_alu_result,
+            ex_mem_mem_data   => ex_mem_mem_data,
             
             -- MEM/WB pipeline registers
             mem_wb_reg_write  => mem_wb_reg_write,
@@ -407,8 +416,8 @@ begin
             mem_wb_imm        => mem_wb_imm,  --imm
             mem_wb_reg1_data  => mem_wb_reg1_data,  --reg1_data
             mem_wb_reg2_data  => mem_wb_reg2_data,  --reg2_data
-            mem_wb_rs1        => mem_wb_rs1,  --rs1
-            mem_wb_rs2        => mem_wb_rs2,  --rs2
+            --mem_wb_rs1        => mem_wb_rs1,  --rs1
+            --mem_wb_rs2        => mem_wb_rs2,  --rs2
             mem_wb_rd         => mem_wb_rd,  --rd
             mem_wb_alu_result => mem_wb_alu_result
         );
@@ -423,7 +432,11 @@ begin
 
     -- IF units
     -- decode instruction
-    opcode <= if_id_instr(6 downto 0);
+--    rs1 <= instr(19 downto 15);
+--    rs2 <= instr(24 downto 20);
+--    rd  <= instr(11 downto 7);
+    --opcode <= if_id_instr(6 downto 0);
+    opcode <= instr(6 downto 0);
     -- Control unit
     control_unit_inst: control_unit
         port map (
@@ -454,8 +467,8 @@ begin
             instr    => instr,--<what signal?>,
             if_id_instr    => if_id_instr,--<what signal?>,
             if_id_rd       => if_id_rd,--<what signal?>,
-            rs1      => instr(19 downto 15),
-            rs2      => instr(24 downto 20),
+            rs1      => instr(19 downto 15), --rs1, --
+            rs2      => instr(24 downto 20), --rs2, --
             -- need any other input registers?
             rd       => rd,
             stall_counter  => stall_counter,
@@ -471,7 +484,7 @@ begin
             if reset = '1' then
                 stall_counter <= 0;
             elsif start_stall = '1' then
-                stall_counter <= 3;
+                stall_counter <= 2;
             elsif stall_counter > 0 then
                 stall_counter <= stall_counter - 1;
             end if;
@@ -483,20 +496,22 @@ begin
 
 --------------------------------------------------------------------------------
     -- ID units
-
+    if_id_rs1 <= instr(19 downto 15);
+    if_id_rs2 <= instr(24 downto 20);
     -- Register file [used in ID and WB stages]
     reg_file_inst: reg_file
         port map (
             clk       => clk,
-            reg_write => reg_write_chip,
-            rs1       => if_id_instr(19 downto 15),--
-            rs2       => if_id_instr(24 downto 20),--
+            reg_write => mem_wb_reg_write,
+            rs1       => if_id_rs1, --if_id_instr(19 downto 15),--
+            rs2       => if_id_rs2, --if_id_instr(24 downto 20),--
             rd        => mem_wb_rd,--<what signal?>,
             data_in   => wb_data,--
-            data_out1 => reg1_data,--<which_register>,
-            data_out2 => reg2_data --<which_register>
+            data_out1 => if_id_reg1_data,--<which_register>,
+            data_out2 => if_id_reg2_data --<which_register>
         );    
-
+   --if_id_reg1_data <= reg1_data; -- suspiscious 
+   --if_id_reg2_data <= reg2_data; -- suspicious 
        
     -- Immediate generator
         immediate_generator_inst: immediate_generator
@@ -541,11 +556,11 @@ begin
         port map (
         addr      => data_memory_byte_not_word,
         data_in   => ex_mem_reg2_data,
-        data_out  => mem_data,
+        data_out  => ex_mem_mem_data,
         mem_read  => ex_mem_mem_read,
         mem_write => ex_mem_mem_write
     );
-    mem_wb_mem_data <= mem_data;  
+    --ex_mem_mem_data <= mem_data;  
 
     -- Comparator 
     not_equal_flag <= '1' when (ex_mem_reg1_data /= ex_mem_reg2_data) else '0';
@@ -563,8 +578,13 @@ begin
     -- WB Units
     
     -- MUX to write back to register file
-    wb_data <= mem_wb_mem_data when (mem_wb_mem_read = '1') else--(<what control signals?>) else 
-               x"10000000" when (mem_wb_load_addr = '1') else --(<what control signals?>) else  -- hack for custom load_addr instruction
-               mem_wb_alu_result when ((mem_wb_mem_read = '0') and (mem_wb_load_addr = '0'));      
+--    wb_data <= mem_wb_mem_data when (mem_wb_mem_read = '1') else --(<what control signals?>) else 
+--               x"10000000" when (mem_wb_load_addr = '1') else --(<what control signals?>) else  -- hack for custom load_addr instruction
+--               mem_wb_alu_result when ((mem_wb_mem_read = '0') and (mem_wb_load_addr = '0')) else
+--               wb_data;    
+               
+    wb_data <= mem_wb_mem_data when mem_wb_mem_read = '1' 
+           else x"10000000" when mem_wb_load_addr = '1'  -- hack for custom load_addr instruction
+           else mem_wb_alu_result;   
    
 end Behavioral;

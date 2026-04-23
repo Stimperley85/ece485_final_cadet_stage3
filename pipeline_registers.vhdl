@@ -25,6 +25,10 @@ entity pipeline_registers is
         rd  : in STD_LOGIC_VECTOR(4 downto 0);
         alu_op  : in STD_LOGIC_VECTOR(3 downto 0);
         -- <add other IF registers?>
+        --reg1_data : STD_LOGIC_VECTOR(31 downto 0)
+        --rs1 : in STD_LOGIC_VECTOR(4 downto 0);
+        --rs2 : in STD_LOGIC_VECTOR(4 downto 0);
+        --reg2_data : STD_LOGIC_VECTOR(31 downto 0);
         
         -- IF/ID pipeline registers
         if_id_reg_write : inout STD_LOGIC;
@@ -36,7 +40,7 @@ entity pipeline_registers is
         if_id_load_addr : inout STD_LOGIC;
         if_id_instr : inout  STD_LOGIC_VECTOR(31 downto 0);
         
-        if_id_reg1_data  : in  STD_LOGIC_VECTOR(31 downto 0);
+        if_id_reg1_data  : in  STD_LOGIC_VECTOR(31 downto 0); --UPDATED
         if_id_reg2_data  : in  STD_LOGIC_VECTOR(31 downto 0);
         if_id_imm        : in  STD_LOGIC_VECTOR(31 downto 0);
         
@@ -44,8 +48,8 @@ entity pipeline_registers is
         -- <add other if_id registers>
         if_id_npc : inout STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
         if_id_rd : inout STD_LOGIC_VECTOR(4 downto 0);
-        if_id_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-        if_id_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+        --if_id_rs1 : in STD_LOGIC_VECTOR(4 downto 0);--rs1
+        --if_id_rs2 : in STD_LOGIC_VECTOR(4 downto 0);--rs2
         
         
         
@@ -67,8 +71,8 @@ entity pipeline_registers is
         --id_ex_instr : inout STD_LOGIC_VECTOR(31 downto 0);
         id_ex_reg1_data  : inout  STD_LOGIC_VECTOR(31 downto 0);
         id_ex_reg2_data : inout STD_LOGIC_VECTOR(31 downto 0);--reg2
-        id_ex_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-        id_ex_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+        --id_ex_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
+        --id_ex_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
         id_ex_rd : inout STD_LOGIC_VECTOR(4 downto 0);--rd
         
         -- EX/MEM pipeline registers        
@@ -88,9 +92,10 @@ entity pipeline_registers is
         ex_mem_instr : inout STD_LOGIC_VECTOR(31 downto 0);--//instr
         ex_mem_reg1_data : inout STD_LOGIC_VECTOR(31 downto 0);
         ex_mem_reg2_data : inout STD_LOGIC_VECTOR(31 downto 0);--reg2
-        ex_mem_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
-        ex_mem_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
+        --ex_mem_rs1 : inout STD_LOGIC_VECTOR(4 downto 0);--rs1
+        --ex_mem_rs2 : inout STD_LOGIC_VECTOR(4 downto 0);--rs2
         ex_mem_rd : inout STD_LOGIC_VECTOR(4 downto 0);--rd
+        ex_mem_mem_data : in STD_LOGIC_VECTOR(31 downto 0);
         
         -- MEM/WB pipeline registers
         mem_wb_reg_write : out STD_LOGIC;
@@ -108,9 +113,10 @@ entity pipeline_registers is
         mem_wb_instr : out STD_LOGIC_VECTOR(31 downto 0);--//instr
         mem_wb_reg1_data : out STD_LOGIC_VECTOR(31 downto 0); --reg1
         mem_wb_reg2_data : out STD_LOGIC_VECTOR(31 downto 0);--reg2
-        mem_wb_rs1 : out STD_LOGIC_VECTOR(4 downto 0);--rs1
-        mem_wb_rs2 : out STD_LOGIC_VECTOR(4 downto 0);--rs2
-        mem_wb_rd : out STD_LOGIC_VECTOR(4 downto 0)--rd
+       -- mem_wb_rs1 : out STD_LOGIC_VECTOR(4 downto 0);--rs1
+        --mem_wb_rs2 : out STD_LOGIC_VECTOR(4 downto 0);--rs2
+        mem_wb_rd : out STD_LOGIC_VECTOR(4 downto 0);--rd
+        mem_wb_mem_data : out STD_LOGIC_VECTOR(31 downto 0)
       
       
     );
@@ -133,6 +139,8 @@ begin
             if_id_rd   <= (others => '0');
             if_id_alu_op <= (others => '0');
             
+            
+            
             id_ex_reg_write <= '0';
             id_ex_alu_src <= '0';
             -- <add other registers>
@@ -153,8 +161,8 @@ begin
             id_ex_imm <= (others => '0');--imm
             id_ex_reg1_data <= (others => '0');--reg1
             id_ex_reg2_data <= (others => '0');--reg2
-            id_ex_rs1 <= (others => '0');--rs1
-            id_ex_rs2 <= (others => '0');--rs2
+            --id_ex_rs1 <= (others => '0');--rs1
+            --id_ex_rs2 <= (others => '0');--rs2
             id_ex_rd <= (others => '0');--rd
             
             ex_mem_reg_write <= '0';
@@ -171,9 +179,10 @@ begin
             ex_mem_imm <= (others => '0');--imm
             ex_mem_reg1_data <= (others => '0');--reg1
             ex_mem_reg2_data <= (others => '0');--reg2
-            ex_mem_rs1 <= (others => '0');--rs1
-            ex_mem_rs2 <= (others => '0');--rs2
+            --ex_mem_rs1 <= (others => '0');--rs1
+            --ex_mem_rs2 <= (others => '0');--rs2
             ex_mem_rd <= (others => '0');--rd
+            --ex_mem_mem_data <= (others => '0');
             
             mem_wb_reg_write <= '0';
             mem_wb_alu_src <= '0';
@@ -189,9 +198,10 @@ begin
             mem_wb_imm <= (others => '0');--imm
             mem_wb_reg1_data <= (others => '0');--reg1
             mem_wb_reg2_data <= (others => '0');--reg2
-            mem_wb_rs1 <= (others => '0');--rs1
-            mem_wb_rs2 <= (others => '0');--rs2
+            --mem_wb_rs1 <= (others => '0');--rs1 
+            --mem_wb_rs2 <= (others => '0');--rs2
             mem_wb_rd <= (others => '0');--rd
+            mem_wb_mem_data <= (others => '0');
 
         elsif rising_edge(clk) then
             if ((start_stall = '1') or (stall_counter > 0)) then  -- if stall, then insert a NOP        1 or greater than 0 for start_stall and stall_counter
@@ -208,6 +218,10 @@ begin
                 -- <add other registers>
                 if_id_rd   <= (others => '0');
                 if_id_alu_op <= (others => '0');
+                --if_id_rs1 <= (others => '0');
+                --if_id_rs2 <= (others => '0');
+                --if_id_reg1_data <= (others => '0');
+                --if_id_reg2_data <= (others => '0');
 
                                 
             else               -- when stall resumes, the old fetched instruction should still be there
@@ -224,6 +238,10 @@ begin
                 -- <add other registers>
                 if_id_rd   <= rd;
                 if_id_alu_op <= alu_op;
+                --if_id_rs1 <= rs1;--instr(19 downto 15);
+                --if_id_rs2 <= rs1;--instr(24 downto 20);
+                --if_id_reg1_data <= reg1_data; -- suspiscious 
+                --if_id_reg2_data <= reg2_data; -- suspicious 
 
             end if;      
 --            -- let instructions prior to stall complete, or move to next state
@@ -251,10 +269,10 @@ begin
             --id_ex_alu_result <= if_id_alu_result;--
             id_ex_alu_op <= if_id_alu_op;--
             id_ex_imm <= if_id_imm;
-            id_ex_reg1_data <= if_id_reg1_data;
+            id_ex_reg1_data <= if_id_reg1_data; ---UPDATING
             id_ex_reg2_data <= if_id_reg2_data;
-            id_ex_rs1 <= if_id_rs1;
-            id_ex_rs2 <= if_id_rs2;
+            --id_ex_rs1 <= if_id_rs1;
+            --id_ex_rs2 <= if_id_rs2;
             id_ex_rd <= if_id_rd;
             
             -- <add other registers>
@@ -273,10 +291,11 @@ begin
             ex_mem_imm <= id_ex_imm;
             ex_mem_reg1_data <= id_ex_reg1_data;
             ex_mem_reg2_data <= id_ex_reg2_data;
-            ex_mem_rs1 <= id_ex_rs1;
-            ex_mem_rs2 <= id_ex_rs2;
+            --ex_mem_rs1 <= id_ex_rs1;
+            --ex_mem_rs2 <= id_ex_rs2;
             ex_mem_rd <= id_ex_rd; 
             
+            mem_wb_mem_data <= ex_mem_mem_data;
             mem_wb_reg_write <= ex_mem_reg_write;   
             mem_wb_alu_src <= ex_mem_alu_src; --
             mem_wb_mem_read <= ex_mem_mem_read; --
@@ -291,8 +310,8 @@ begin
             mem_wb_imm <= ex_mem_imm;
             mem_wb_reg1_data <= ex_mem_reg1_data;
             mem_wb_reg2_data <= ex_mem_reg2_data;
-            mem_wb_rs1 <= ex_mem_rs1;
-            mem_wb_rs2 <= ex_mem_rs2;
+            --mem_wb_rs1 <= ex_mem_rs1;
+            --mem_wb_rs2 <= ex_mem_rs2;
             mem_wb_rd <= ex_mem_rd;
 
         end if;

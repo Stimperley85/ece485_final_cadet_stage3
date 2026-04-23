@@ -14,7 +14,7 @@ entity hazard_detection_unit is
         rs2      : in STD_LOGIC_VECTOR(4 downto 0);         -- current  instr source register
         -- need any other input registers?
         rd      : in STD_LOGIC_VECTOR(4 downto 0);
-        stall_counter  : in integer range 0 to 3 := 0;
+        stall_counter  : in integer range 0 to 2 := 0;
         start_stall    : out STD_LOGIC
     );
 end hazard_detection_unit;
@@ -35,7 +35,7 @@ begin
         elsif ((if_id_rd = rs1) and ((opcode = "0110011") or (opcode = "0010011") or (opcode = "0010111") or (opcode = "0000011"))) then --<what control signals and opcodes?>) then -- single stall data dependency case
                 start_stall <= '1';
         elsif -- stall cases for branch or jump, needing time to calulate branch address, etc
-              ((rd = if_id_rd) and ((opcode = "1100011") or (opcode =  "1101111"))) then 
+              (((opcode = "1100011") or (opcode =  "1101111"))) then --(rd = if_id_rd) and 
                 start_stall <= '1';      
         else        
                 start_stall <= '0';
