@@ -35,7 +35,7 @@ begin
         elsif ((if_id_rd = rs1) and ((opcode = "0110011") or (opcode = "0010011") or (opcode = "0010111") or (opcode = "0000011"))) then --<what control signals and opcodes?>) then -- single stall data dependency case
                 start_stall <= '1';
         elsif -- stall cases for branch or jump, needing time to calulate branch address, etc
-              (((opcode = "1100011") or (opcode =  "1101111"))) then --(rd = if_id_rd) and 
+              (((if_id_rd = rs1) and (opcode = "1100011")) or (if_id_opcode = "1100011")) then --(rd = if_id_rd) (opcode =  "1101111")
                 start_stall <= '1';      
         else        
                 start_stall <= '0';
